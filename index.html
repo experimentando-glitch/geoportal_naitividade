@@ -1,0 +1,461 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Geoportal Natividade - Sistema de Informações Geográficas</title>
+    <meta name="description"
+        content="Geoportal interativo do município de Natividade com dados geográficos, demográficos e urbanos">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Custom Styles -->
+    <link rel="stylesheet" href="styles.css">
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Proj4 for coordinate transformation -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4js/2.9.0/proj4.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/proj4leaflet/1.0.2/proj4leaflet.min.js"></script>
+
+    <!-- Application Script -->
+    <script src="app.js" defer></script>
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <div class="logo-section">
+                <div class="logo-icon">
+                    <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <path d="M16 2L4 8V14C4 22 16 30 16 30C16 30 28 22 28 14V8L16 2Z" fill="url(#gradient1)" />
+                        <circle cx="16" cy="14" r="4" fill="white" opacity="0.9" />
+                        <defs>
+                            <linearGradient id="gradient1" x1="4" y1="2" x2="28" y2="30" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#667eea" />
+                                <stop offset="1" stop-color="#764ba2" />
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                </div>
+                <div class="logo-text">
+                    <h1>Geoportal Natividade</h1>
+                    <p>Sistema de Informações Geográficas</p>
+                </div>
+            </div>
+
+            <div class="header-actions">
+                <button class="btn-secondary" id="infoBtn">
+                    <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                        <circle cx="10" cy="10" r="8" stroke="currentColor" stroke-width="2" />
+                        <path d="M10 10V14M10 6V7" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                    Informações
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-section">
+                <h2 class="section-title">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M2 2H8V8H2V2Z" stroke="currentColor" stroke-width="1.5" />
+                        <path d="M10 2H16V8H10V2Z" stroke="currentColor" stroke-width="1.5" />
+                        <path d="M2 10H8V16H2V10Z" stroke="currentColor" stroke-width="1.5" />
+                        <path d="M10 10H16V16H10V10Z" stroke="currentColor" stroke-width="1.5" />
+                    </svg>
+                    Mapas de Fundo
+                </h2>
+                <div class="basemap-selector">
+                    <div class="basemap-option active" data-basemap="streets">
+                        <div class="basemap-preview"
+                            style="background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);">
+                            <span class="basemap-icon">🗺️</span>
+                        </div>
+                        <span class="basemap-name">Ruas</span>
+                    </div>
+                    <div class="basemap-option" data-basemap="satellite">
+                        <div class="basemap-preview"
+                            style="background: linear-gradient(135deg, #134e5e 0%, #71b280 100%);">
+                            <span class="basemap-icon">🛰️</span>
+                        </div>
+                        <span class="basemap-name">Satélite</span>
+                    </div>
+                    <div class="basemap-option" data-basemap="terrain">
+                        <div class="basemap-preview"
+                            style="background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);">
+                            <span class="basemap-icon">⛰️</span>
+                        </div>
+                        <span class="basemap-name">Terreno</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section">
+                <h2 class="section-title">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M2 4H16M2 9H16M2 14H16" stroke="currentColor" stroke-width="1.5"
+                            stroke-linecap="round" />
+                    </svg>
+                    Camadas de Dados
+                </h2>
+                <div class="layers-list">
+                    <div class="layer-item" data-layer="distritos">
+                        <label class="layer-checkbox">
+                            <input type="checkbox" id="layer-distritos" checked>
+                            <span class="checkmark"></span>
+                        </label>
+                        <div class="layer-info">
+                            <span class="layer-name">Distritos</span>
+                            <span class="layer-color" style="background: #667eea;"></span>
+                        </div>
+                    </div>
+
+                    <div class="layer-item" data-layer="setores">
+                        <label class="layer-checkbox">
+                            <input type="checkbox" id="layer-setores">
+                            <span class="checkmark"></span>
+                        </label>
+                        <div class="layer-info">
+                            <span class="layer-name">Setores Censitários</span>
+                            <span class="layer-color" style="background: #f093fb;"></span>
+                        </div>
+                    </div>
+
+                    <div class="layer-item" data-layer="urb_rur">
+                        <label class="layer-checkbox">
+                            <input type="checkbox" id="layer-urb_rur">
+                            <span class="checkmark"></span>
+                        </label>
+                        <div class="layer-info">
+                            <span class="layer-name">Urbano / Rural</span>
+                            <span class="layer-color" style="background: #4facfe;"></span>
+                        </div>
+                    </div>
+
+                    <div class="layer-item" data-layer="deficit_hab">
+                        <label class="layer-checkbox">
+                            <input type="checkbox" id="layer-deficit_hab">
+                            <span class="checkmark"></span>
+                        </label>
+                        <div class="layer-info">
+                            <span class="layer-name">Déficit Habitacional</span>
+                            <span class="layer-color" style="background: #fa709a;"></span>
+                        </div>
+                    </div>
+
+                    <div class="layer-item" data-layer="residencia">
+                        <label class="layer-checkbox">
+                            <input type="checkbox" id="layer-residencia">
+                            <span class="checkmark"></span>
+                        </label>
+                        <div class="layer-info">
+                            <span class="layer-name">Residências</span>
+                            <span class="layer-color" style="background: #43e97b;"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section" id="attributeSelector" style="display: none;">
+                <h2 class="section-title">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <path d="M2 4H16M2 9H16M2 14H10" stroke="currentColor" stroke-width="1.5"
+                            stroke-linecap="round" />
+                    </svg>
+                    Atributos dos Setores
+                </h2>
+                <p class="attribute-description">Selecione os dados que deseja visualizar:</p>
+                <div class="attributes-list" id="attributesList">
+                    <label class="attribute-checkbox">
+                        <input type="checkbox" value="CD_SETOR" checked>
+                        <span class="checkmark"></span>
+                        <span class="attribute-name">Código do Setor</span>
+                    </label>
+                    <label class="attribute-checkbox">
+                        <input type="checkbox" value="NM_MUN" checked>
+                        <span class="checkmark"></span>
+                        <span class="attribute-name">Município</span>
+                    </label>
+                    <label class="attribute-checkbox">
+                        <input type="checkbox" value="NM_DIST" checked>
+                        <span class="checkmark"></span>
+                        <span class="attribute-name">Distrito</span>
+                    </label>
+                    <label class="attribute-checkbox">
+                        <input type="checkbox" value="AREA_KM2" checked>
+                        <span class="checkmark"></span>
+                        <span class="attribute-name">Área (km²)</span>
+                    </label>
+                    <label class="attribute-checkbox">
+                        <input type="checkbox" value="v0001" checked>
+                        <span class="checkmark"></span>
+                        <span class="attribute-name">População Total</span>
+                    </label>
+                    <label class="attribute-checkbox">
+                        <input type="checkbox" value="v0002" checked>
+                        <span class="checkmark"></span>
+                        <span class="attribute-name">Domicílios Particulares</span>
+                    </label>
+                    <label class="attribute-checkbox">
+                        <input type="checkbox" value="v0003">
+                        <span class="checkmark"></span>
+                        <span class="attribute-name">Domicílios Ocupados</span>
+                    </label>
+                    <label class="attribute-checkbox">
+                        <input type="checkbox" value="v0004">
+                        <span class="checkmark"></span>
+                        <span class="attribute-name">Domicílios Vagos</span>
+                    </label>
+                    <label class="attribute-checkbox">
+                        <input type="checkbox" value="v0005">
+                        <span class="checkmark"></span>
+                        <span class="attribute-name">Moradores por Domicílio</span>
+                    </label>
+                    <label class="attribute-checkbox">
+                        <input type="checkbox" value="v0006">
+                        <span class="checkmark"></span>
+                        <span class="attribute-name">Área Média (km²)</span>
+                    </label>
+                    <label class="attribute-checkbox">
+                        <input type="checkbox" value="v0007" checked>
+                        <span class="checkmark"></span>
+                        <span class="attribute-name">Número de Residências</span>
+                    </label>
+                    <label class="attribute-checkbox">
+                        <input type="checkbox" value="RENDIMENTO NOMINAL MÉDIO POR SETOR">
+                        <span class="checkmark"></span>
+                        <span class="attribute-name">Renda Média (R$)</span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="sidebar-section" id="thematicMappingPanel" style="display: none;">
+                <h2 class="section-title">
+                    <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                        <rect x="2" y="2" width="4" height="4" fill="currentColor" opacity="0.3" />
+                        <rect x="7" y="2" width="4" height="4" fill="currentColor" opacity="0.5" />
+                        <rect x="12" y="2" width="4" height="4" fill="currentColor" opacity="0.7" />
+                        <rect x="2" y="7" width="4" height="4" fill="currentColor" opacity="0.5" />
+                        <rect x="7" y="7" width="4" height="4" fill="currentColor" opacity="0.7" />
+                        <rect x="12" y="7" width="4" height="4" fill="currentColor" opacity="0.9" />
+                        <rect x="2" y="12" width="4" height="4" fill="currentColor" opacity="0.7" />
+                        <rect x="7" y="12" width="4" height="4" fill="currentColor" opacity="0.9" />
+                        <rect x="12" y="12" width="4" height="4" fill="currentColor" />
+                    </svg>
+                    Mapa Temático
+                </h2>
+                <p class="thematic-description">Visualize os dados dos setores censitários por cores</p>
+
+                <div class="thematic-selector-container">
+                    <label for="thematicAttributeSelect" class="thematic-label">Selecione o atributo:</label>
+                    <select id="thematicAttributeSelect" class="thematic-select">
+                        <option value="">-- Nenhum (cores padrão) --</option>
+                        <optgroup label="📊 Dados Demográficos">
+                            <option value="v0001">População Total</option>
+                            <option value="v0002">Domicílios Particulares Permanentes</option>
+                            <option value="v0003">Domicílios Particulares Ocupados</option>
+                            <option value="v0004">Domicílios Particulares Vagos</option>
+                            <option value="v0005">Moradores por Domicílio</option>
+                            <option value="v0006">Área Média por Domicílio (km²)</option>
+                            <option value="v0007">Número de Residências</option>
+                        </optgroup>
+                        <optgroup label="📚 Educação">
+                            <option value="15-29 Analfabetos">15-29 Analfabetos</option>
+                            <option value="30-59 Analfabetos">30-59 Analfabetos</option>
+                            <option value="60+ Analfabetos">60+ Analfabetos</option>
+                            <option value="Total_Analfabetos">Total Analfabetos</option>
+                        </optgroup>
+                        <optgroup label="👶 Faixas Etárias">
+                            <option value="0 a 4 anos">0 a 4 anos</option>
+                            <option value="5 a 9 anos">5 a 9 anos</option>
+                            <option value="9 a 14 anos">9 a 14 anos</option>
+                            <option value="70 anos +">70 anos +</option>
+                            <option value="Total de crianças de 0 - 14 anos e idoso + 70 anos">Total crianças (0-14) e
+                                idosos (70+)</option>
+                        </optgroup>
+                        <optgroup label="🎨 Raça/Cor">
+                            <option value="Branca">Branca</option>
+                            <option value="Preta">Preta</option>
+                            <option value="Amarela">Amarela</option>
+                            <option value="Parda">Parda</option>
+                            <option value="Indígena">Indígena</option>
+                        </optgroup>
+                        <optgroup label="💰 Renda">
+                            <option value="Pessoas responsáveis em domicílios particulares permanentes ocupados">Pessoas
+                                Responsáveis</option>
+                            <option value="RENDIMENTO NOMINAL MÉDIO POR SETOR">Renda Média (R$)</option>
+                        </optgroup>
+                        <optgroup label="💧 Abastecimento de Água">
+                            <option value="Utiliza rede geral de distribuição">Rede Geral</option>
+                            <option value="Utiliza poço profundo ou artesiano">Poço Profundo/Artesiano</option>
+                            <option value="Utiliza poço raso, freático ou cacimba">Poço Raso/Cacimba</option>
+                            <option value="Utiliza fonte, nascente ou mina">Fonte/Nascente</option>
+                            <option value="Utiliza carro-pipa">Carro-pipa</option>
+                            <option value="Utiliza água da chuva armazenada">Água da Chuva</option>
+                            <option value="Utiliza rios, açudes, córregos, lagos e igarapés">Rios/Lagos</option>
+                            <option value="Total que não utiliza Rede geral de distribuição">Sem Rede Geral</option>
+                        </optgroup>
+                        <optgroup label="🚽 Esgotamento Sanitário">
+                            <option value="Rede geral ou pluvial">Rede Geral/Pluvial</option>
+                            <option value="fossa séptica ou fossa filtro ligada à rede">Fossa Séptica (ligada)</option>
+                            <option value="fossa séptica ou fossa filtro não ligada à rede">Fossa Séptica (não ligada)
+                            </option>
+                            <option value="Fossa rudimentar ou buraco">Fossa Rudimentar</option>
+                            <option value="Vala">Vala</option>
+                            <option value="Rio, lago, córrego ou mar">Rio/Lago/Mar</option>
+                            <option value="Não utilizam a rede geral ou pluvial">Sem Rede Geral</option>
+                        </optgroup>
+                        <optgroup label="🗑️ Destino do Lixo">
+                            <option value="Lixo coletado no domicílio por serviço de limpeza">Coletado no Domicílio
+                            </option>
+                            <option value="Lixo depositado em caçamba de serviço de limpeza">Depositado em Caçamba
+                            </option>
+                            <option value="Lixo queimado na propriedade">Queimado</option>
+                            <option value="Lixo enterrado na propriedade">Enterrado</option>
+                            <option value="Lixo jogado em terreno baldio, encosta ou área pública">Jogado em Terreno
+                            </option>
+                            <option value="Lixo não coletado por serviço de limpeza">Não Coletado</option>
+                        </optgroup>
+                        <optgroup label="🏠 Tipo de Moradia">
+                            <option value="Casa">Casa</option>
+                            <option value="Casa de vila ou em condomínio">Casa de Vila/Condomínio</option>
+                            <option value="apartamento">Apartamento</option>
+                            <option value="habitação em casa de cômodos ou cortiço">Cômodos/Cortiço</option>
+                            <option value="Estrutura residencial permanente degradada ou inacabada">Estrutura Degradada
+                            </option>
+                            <option value="Moradias temporárias e improvisadas">Moradias Improvisadas</option>
+                        </optgroup>
+                    </select>
+
+                    <button id="applyThematicBtn" class="btn-thematic" disabled>
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M8 2V14M2 8H14" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                        </svg>
+                        Aplicar Mapa Temático
+                    </button>
+
+                    <button id="resetThematicBtn" class="btn-thematic-reset" style="display: none;">
+                        <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                            <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2"
+                                stroke-linecap="round" />
+                        </svg>
+                        Limpar Mapa Temático
+                    </button>
+                </div>
+
+                <div id="legendContainer" style="display: none;">
+                    <div class="legend-title">Legenda</div>
+                    <div id="legendContent" class="legend-classes">
+                        <!-- Legend items will be added here -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="sidebar-section" id="attributeTablePanel" style="display: none;">
+                <div class="attribute-table-info">
+                    <h2 class="section-title">
+                        <svg width="18" height="18" viewBox="0 0 18 18" fill="none">
+                            <path d="M2 4H16M2 9H16M2 14H16" stroke="currentColor" stroke-width="1.5"
+                                stroke-linecap="round" />
+                        </svg>
+                        Detalhes
+                        <button class="close-table-btn" id="closeTableBtn" title="Fechar painel">
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                                <path d="M12 4L4 12M4 4L12 12" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" />
+                            </svg>
+                        </button>
+                    </h2>
+                </div>
+                <div class="attribute-table-container" id="attributeTableContainer">
+                    <table class="attribute-table">
+                        <tbody id="attributeTableBody">
+                            <!-- Table rows will be added here -->
+                        </tbody>
+                    </table>
+                </div>
+                <p class="table-description">Clique em um setor no mapa para ver detalhes</p>
+            </div>
+        </aside>
+
+        <!-- Map Container -->
+        <div class="map-container">
+            <div id="map"></div>
+
+            <div class="map-controls">
+                <button class="map-control-btn" id="zoomInBtn" title="Aumentar Zoom">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M12 5V19M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </button>
+                <button class="map-control-btn" id="zoomOutBtn" title="Diminuir Zoom">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M5 12H19" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </button>
+                <button class="map-control-btn" id="homeBtn" title="Vista Inicial">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M3 9L12 2L21 9V20C21 20.5304 20.7893 21.0391 20.4142 21.4142C20.0391 21.7893 19.5304 22 19 22H5C4.46957 22 3.96086 21.7893 3.58579 21.4142C3.21071 21.0391 3 20.5304 3 20V9Z" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                        <path d="M9 22V12H15V22" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                    </svg>
+                </button>
+            </div>
+
+            <div class="loading-indicator" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>Carregando dados...</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Info Modal -->
+    <div class="modal" id="infoModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Sobre o Geoportal</h2>
+                <button class="modal-close" id="closeModal">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" />
+                    </svg>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>O <strong>Geoportal Natividade</strong> é uma ferramenta interativa para visualização e análise de
+                    dados geográficos e demográficos do município.</p>
+
+                <h3>Camadas Disponíveis:</h3>
+                <ul>
+                    <li><strong>Distritos:</strong> Divisão administrativa oficial do município.</li>
+                    <li><strong>Setores Censitários:</strong> Unidades territoriais de coleta do IBGE.</li>
+                    <li><strong>Urbano / Rural:</strong> Classificação das áreas do município.</li>
+                    <li><strong>Déficit Habitacional:</strong> Áreas com carência habitacional.</li>
+                    <li><strong>Residências:</strong> Pontos de localização residencial.</li>
+                </ul>
+
+                <h3>Funcionalidades:</h3>
+                <ul>
+                    <li>Navegação interativa pelo mapa</li>
+                    <li>Consulta de informações detalhadas ao clicar nos elementos</li>
+                    <li>Mapas temáticos para visualização de indicadores socioeconômicos</li>
+                    <li>Alternância entre diferentes mapas de fundo (Ruas, Satélite, Terreno)</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
